@@ -4,6 +4,17 @@ Creating a system to ease the access to Fair Financial Assets and Affordable Fin
 ## Tech stack
 
 ## Initialisation
+```bash
+# 1. Install front end dependencies
+cd frontend
+npm install
+cd ..
+
+# 2. Install smart contract dependencies (hardhat) 
+cd smart-contracts
+npm install
+cd ..
+```
 
 ## Features
 
