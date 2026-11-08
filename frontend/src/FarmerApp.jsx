@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { cooperatives, money, displayDate, supplierFor } from './data/demo'
+import { money, displayDate } from './data/demo'
 import { useDemoContracts } from './hooks/useDemoContracts'
-import { Badge, Button, EmptyState, Icon, Modal, StatusBadge, SupplierAvatar } from './components/ui'
+import { Badge, Button, EmptyState, Icon, Modal, StatusBadge } from './components/ui'
 import ContractRequest from './components/ContractRequest'
 import './App.css'
 
@@ -17,18 +17,23 @@ const apparelBuyers = [
 
 function BuyerCard({ buyer, onOpen }) {
   return <article className="supplier-card">
-    <div className="supplier-cover forest"><span className="cover-line line-one" /><span className="cover-line line-two" /><span className="cover-line line-three" /><span className="material-tag"><Icon name="leaf" size={14} />Biomass Offtaker</span><span className="cover-location">{buyer.country}</span><div className="cover-plant"><Icon name="leaf" size={102} /></div></div>
-    <div className="supplier-card-body"><div className="supplier-title"><h3>{buyer.name}</h3><span className="rating"><Icon name="star" size={14} />{buyer.rating.toFixed(1)}</span></div><p className="location"><Icon name="pin" size={14} />{buyer.region}, {buyer.country}</p><div className="supplier-card-metrics"><span><small>Annual demand</small><strong>{buyer.demand} <em>tonnes</em></strong></span><span><small>Active partnerships</small><strong>{buyer.activeContracts} <em>unions</em></strong></span></div><div className="supplier-card-footer"><span className="document-status"><Icon name="shield" size={14} />Verified ESG Buyer</span><button className="text-button" onClick={() => onOpen(buyer)}>View buyer profile<Icon name="arrow" size={15} /></button></div></div>
+    <div className="supplier-cover forest"><span className="cover-line line-one" /><span className="cover-line line-two" /><span className="cover-line line-three" /><span className="material-tag" style={{ color: '#254e3b', background: '#eef4e3' }}><Icon name="leaf" size={14} />Biomass Offtaker</span><span className="cover-location">{buyer.country}</span><div className="cover-plant" style={{ color: '#254e3b' }}><Icon name="leaf" size={102} /></div></div>
+    <div className="supplier-card-body">
+      <div className="supplier-title"><h3>{buyer.name}</h3><span className="rating"><Icon name="star" size={14} />{buyer.rating.toFixed(1)}</span></div>
+      <p className="location"><Icon name="pin" size={14} />{buyer.region}, {buyer.country}</p>
+      <div className="supplier-card-metrics"><span><small>Annual demand</small><strong>{buyer.demand} <em>tonnes</em></strong></span><span><small>Active partnerships</small><strong>{buyer.activeContracts} <em>unions</em></strong></span></div>
+      <div className="supplier-card-footer"><span className="document-status"><Icon name="shield" size={14} />Verified ESG Buyer</span><button className="text-button" style={{ color: '#254e3b' }} onClick={() => onOpen(buyer)}>View buyer profile<Icon name="arrow" size={15} /></button></div>
+    </div>
   </article>
 }
 
 function BuyerDetails({ buyer, onRequest }) {
-  return <><div className="profile-intro"><div className="supplier-avatar large forest" style={{ fontFamily: 'Georgia, serif', fontSize: '24px' }}>{buyer.name[0]}</div><div><Badge tone="green">Verified Apparel Buyer</Badge><h3>{buyer.name}</h3><p className="location"><Icon name="pin" size={15} />{buyer.region}, {buyer.country}</p></div></div><p className="profile-description">{buyer.description}</p><div className="profile-stats"><div><strong>{buyer.demand}t</strong><span>Annual demand</span></div><div><strong>{buyer.activeContracts}</strong><span>Partner unions</span></div><div><strong>100%</strong><span>Working capital backed</span></div></div><h4>Commitment terms</h4><dl className="detail-list"><div><dt>Working capital advances</dt><dd>Offered upfront</dd></div><div><dt>Insurance support</dt><dd>Included in contract</dd></div><div><dt>Payment terms</dt><dd>Milestone-based escrow</dd></div><div><dt>Compliance standards</dt><dd>EU CBAM &amp; ESPR ready</dd></div></dl><p className="data-note"><Icon name="help" size={16} />Apparel buyer profiles and demand targets are illustrative sample records.</p><footer className="modal-actions"><span className="muted small">Request a guaranteed biomass purchase contract.</span><Button onClick={() => onRequest(buyer)} icon="plus">Request supply contract</Button></footer></>
+  return <><div className="profile-intro"><div className="supplier-avatar large forest" style={{ fontFamily: 'Georgia, serif', fontSize: '24px', background: '#eef4e3', color: '#254e3b' }}>{buyer.name[0]}</div><div><Badge tone="green">Verified Apparel Buyer</Badge><h3>{buyer.name}</h3><p className="location"><Icon name="pin" size={15} />{buyer.region}, {buyer.country}</p></div></div><p className="profile-description">{buyer.description}</p><div className="profile-stats"><div><strong>{buyer.demand}t</strong><span>Annual demand</span></div><div><strong>{buyer.activeContracts}</strong><span>Partner unions</span></div><div><strong>100%</strong><span>Working capital backed</span></div></div><h4>Commitment terms</h4><dl className="detail-list"><div><dt>Working capital advances</dt><dd>Offered upfront</dd></div><div><dt>Insurance support</dt><dd>Included in contract</dd></div><div><dt>Payment terms</dt><dd>Milestone-based escrow</dd></div><div><dt>Compliance standards</dt><dd>EU CBAM &amp; ESPR ready</dd></div></dl><p className="data-note"><Icon name="help" size={16} />Apparel buyer profiles and demand targets are illustrative sample records.</p><footer className="modal-actions"><span className="muted small">Request a guaranteed biomass purchase contract.</span><Button style={{ background: '#254e3b' }} onClick={() => onRequest(buyer)} icon="plus">Request supply contract</Button></footer></>
 }
 
 function FarmerContractTable({ contracts, onOpen, compact = false }) {
   return <div className="table-scroll"><table><thead><tr><th>Apparel Buyer / Contract</th><th>Volume</th>{!compact && <th>Contract Value</th>}<th>Target Delivery</th><th>Status</th><th><span className="sr-only">Details</span></th></tr></thead><tbody>{contracts.map((contract) => {
-    return <tr key={contract.id}><td><div className="table-supplier"><div className="supplier-avatar forest" style={{ fontFamily: 'Georgia, serif' }}>NA</div><div><button className="table-title" onClick={() => onOpen(contract)}>Northline Apparel</button><span>{contract.id} <span className="subtle-dot">·</span> Biomass Supply</span></div></div></td><td><strong className="table-number">{contract.volume} t</strong><small>{contract.delivered} t delivered</small></td>{!compact && <td>{money(contract.volume * contract.price)}</td>}<td>{displayDate(contract.date)}{contract.risk && !contract.riskAcknowledged && <span className="risk-inline"><Icon name="alert" size={12} />Weather alert logged</span>}</td><td><StatusBadge status={contract.status} /></td><td><button className="icon-button" aria-label={`View contract ${contract.id}`} onClick={() => onOpen(contract)}><Icon name="chevron" size={17} /></button></td></tr>
+    return <tr key={contract.id}><td><div className="table-supplier"><div className="supplier-avatar forest" style={{ fontFamily: 'Georgia, serif', background: '#eef4e3', color: '#254e3b' }}>NA</div><div><button className="table-title" style={{ color: '#254e3b' }} onClick={() => onOpen(contract)}>Northline Apparel</button><span>{contract.id} <span className="subtle-dot">·</span> Biomass Supply</span></div></div></td><td><strong className="table-number" style={{ color: '#254e3b' }}>{contract.volume} t</strong><small>{contract.delivered} t delivered</small></td>{!compact && <td>{money(contract.volume * contract.price)}</td>}<td>{displayDate(contract.date)}{contract.risk && !contract.riskAcknowledged && <span className="risk-inline"><Icon name="alert" size={12} />Weather alert logged</span>}</td><td><StatusBadge status={contract.status} /></td><td><button className="icon-button" aria-label={`View contract ${contract.id}`} onClick={() => onOpen(contract)}><Icon name="chevron" size={17} /></button></td></tr>
   })}</tbody></table></div>
 }
 
@@ -48,12 +53,12 @@ function Dashboard({ contracts, navigate, onBuyer, onContract, onReportDisruptio
     { label: 'Incoming proposals', value: String(incoming.length).padStart(2, '0'), note: 'From verified apparel brands', icon: 'people', tone: 'lilac' },
   ]
   return <>
-    <div className="page-heading"><div><p className="eyebrow">FARMER UNION PORTAL</p><h1 style={{ fontFamily: 'Georgia, serif' }}>Empowering sustainable growers.</h1><p>Secure working capital, guaranteed purchase contracts, and climate resilience.</p></div><div style={{ display: 'flex', gap: '10px' }}><Button variant="secondary" onClick={onSwitchRole}>Switch role</Button><Button onClick={() => onReportDisruption()} icon="alert">Report harvest issue</Button></div></div>
-    <section className="hero-grid"><div className="impact-banner"><div className="hero-copy"><span className="hero-label"><span />HARVESTING RENEWABLE VALUE</span><h2>Fair contracts.<br />Upfront working capital.</h2><p>Connect your farming cooperative directly with global apparel decarbonization goals.</p><button onClick={() => navigate('buyers')} className="hero-link">Browse apparel buyers<Icon name="arrow" size={18} /></button></div><div className="hero-art" aria-hidden="true"><div className="sun" /><div className="field field-back" /><div className="field field-mid" /><div className="field field-front" /><div className="hero-sprout"><Icon name="leaf" size={118} /></div><span className="art-caption">SMALLHOLDER VALUE CHAIN FINANCE</span></div></div><div className="next-card"><div className="next-card-top"><span className="square-icon"><Icon name="people" size={22} /></span><Badge tone={incoming.length ? 'amber' : 'green'}>{incoming.length ? 'Action required' : 'All contracts secured'}</Badge></div><h3>{incoming.length ? 'New buyer contract proposal.' : 'Log a harvest status.'}</h3><p>{incoming.length ? 'Northline Apparel sent a purchase proposal with upfront working capital terms.' : 'Report weather issues or check your active delivery schedules.'}</p><button className="text-button" onClick={() => incoming.length ? onContract(incoming[0]) : navigate('contracts')}>{incoming.length ? 'Review proposal' : 'View contracts'}<Icon name="arrow" size={17} /></button></div></section>
+    <div className="page-heading"><div><p className="eyebrow" style={{ color: '#254e3b' }}>FARMER UNION PORTAL</p><h1 style={{ fontFamily: 'Georgia, serif' }}>Empowering sustainable growers.</h1><p>Secure working capital, guaranteed purchase contracts, and climate resilience.</p></div><div style={{ display: 'flex', gap: '10px' }}><Button variant="secondary" onClick={onSwitchRole}>Switch role</Button><Button style={{ background: '#254e3b' }} onClick={() => onReportDisruption()} icon="alert">Report harvest issue</Button></div></div>
+    <section className="hero-grid"><div className="impact-banner"><div className="hero-copy"><span className="hero-label" style={{ color: '#254e3b' }}><span style={{ background: '#254e3b' }} />HARVESTING RENEWABLE VALUE</span><h2>Fair contracts.<br />Upfront working capital.</h2><p>Connect your farming cooperative directly with global apparel decarbonization goals.</p><button onClick={() => navigate('buyers')} className="hero-link" style={{ color: '#254e3b' }}>Browse apparel buyers<Icon name="arrow" size={18} /></button></div><div className="hero-art" aria-hidden="true"><div className="sun" /><div className="field field-back" /><div className="field field-mid" /><div className="field field-front" /><div className="hero-sprout"><Icon name="leaf" size={118} /></div><span className="art-caption">SMALLHOLDER VALUE CHAIN FINANCE</span></div></div><div className="next-card"><div className="next-card-top"><span className="square-icon"><Icon name="people" size={22} /></span><Badge tone={incoming.length ? 'amber' : 'green'}>{incoming.length ? 'Action required' : 'All contracts secured'}</Badge></div><h3>{incoming.length ? 'New buyer contract proposal.' : 'Log a harvest status.'}</h3><p>{incoming.length ? 'Northline Apparel sent a purchase proposal with upfront working capital terms.' : 'Report weather issues or check your active delivery schedules.'}</p><button className="text-button" style={{ color: '#254e3b' }} onClick={() => incoming.length ? onContract(incoming[0]) : navigate('contracts')}>{incoming.length ? 'Review proposal' : 'View contracts'}<Icon name="arrow" size={17} /></button></div></section>
     <section className="stats-grid" aria-label="Union summary">{stats.map((stat) => <article className="stat-card" key={stat.label}><div className="stat-top"><span>{stat.label}</span><span className={`stat-icon ${stat.tone}`}><Icon name={stat.icon} size={18} /></span></div><div className="stat-value">{stat.value}<span>{stat.unit}</span></div><p>{stat.note}</p></article>)}</section>
     {risk && <div className="risk-banner"><span className="risk-banner-icon"><Icon name="alert" /></span><div><strong>Harvest disruption reported</strong><p>Your weather or drought report for agreement {risk.id} has been logged for buyer insurance review.</p></div><button className="text-button" onClick={() => onContract(risk)}>View details<Icon name="arrow" size={16} /></button></div>}
-    <section className="section-block"><div className="section-heading"><div><h2>Active supply agreements</h2><p>Your commitments to apparel decarbonization partners.</p></div><button className="text-button" onClick={() => navigate('contracts')}>View all contracts<Icon name="arrow" size={16} /></button></div><div className="panel">{contracts.length ? <FarmerContractTable contracts={contracts.slice(0, 3)} onOpen={onContract} compact /> : <EmptyState title="No active contracts yet" description="Connect with apparel buyers or request a supply partnership."><Button onClick={() => navigate('buyers')}>Explore apparel buyers</Button></EmptyState>}</div></section>
-    <section className="section-block"><div className="section-heading"><div><div className="inline-heading"><h2>Featured apparel buyers</h2><Badge>Verified off-takers</Badge></div><p>Global brands seeking sustainable biomass off-take.</p></div><button className="text-button" onClick={() => navigate('buyers')}>Explore all buyers<Icon name="arrow" size={16} /></button></div><div className="supplier-grid featured-grid">{apparelBuyers.map((buyer) => <BuyerCard key={buyer.id} buyer={buyer} onOpen={onBuyer} />)}</div></section>
+    <section className="section-block"><div className="section-heading"><div><h2>Active supply agreements</h2><p>Your commitments to apparel decarbonization partners.</p></div><button className="text-button" style={{ color: '#254e3b' }} onClick={() => navigate('contracts')}>View all contracts<Icon name="arrow" size={16} /></button></div><div className="panel">{contracts.length ? <FarmerContractTable contracts={contracts.slice(0, 3)} onOpen={onContract} compact /> : <EmptyState title="No active contracts yet" description="Connect with apparel buyers or request a supply partnership."><Button onClick={() => navigate('buyers')}>Explore apparel buyers</Button></EmptyState>}</div></section>
+    <section className="section-block"><div className="section-heading"><div><div className="inline-heading"><h2>Featured apparel buyers</h2><Badge>Verified off-takers</Badge></div><p>Global brands seeking sustainable biomass off-take.</p></div><button className="text-button" style={{ color: '#254e3b' }} onClick={() => navigate('buyers')}>Explore all buyers<Icon name="arrow" size={16} /></button></div><div className="supplier-grid featured-grid">{apparelBuyers.map((buyer) => <BuyerCard key={buyer.id} buyer={buyer} onOpen={onBuyer} />)}</div></section>
   </>
 }
 
@@ -61,7 +66,7 @@ function BuyerMarketplace({ onBuyer }) {
   const [search, setSearch] = useState('')
   const [country, setCountry] = useState('All regions')
   const filtered = apparelBuyers.filter((buyer) => `${buyer.name} ${buyer.country} ${buyer.region}`.toLowerCase().includes(search.toLowerCase().trim()) && (country === 'All regions' || buyer.country === country))
-  return <><div className="page-heading"><div><p className="eyebrow">APPAREL BUYER NETWORK</p><h1 style={{ fontFamily: 'Georgia, serif' }}>Verified industrial off-takers.</h1><p>Find apparel brands looking for sustainable biomass and crop residue supply.</p></div><span className="network-label"><Icon name="people" size={17} />3 verified buyers</span></div><div className="market-intro"><Icon name="leaf" size={26} /><p>Guaranteed purchase agreements.<span>Secure working capital and crop insurance backing for your farm union.</span></p><Badge>Decarbonization partners</Badge></div><section className="filters panel" aria-label="Filter buyers"><div className="search-field"><Icon name="search" size={19} /><input aria-label="Search buyers" placeholder="Search apparel buyers or locations…" value={search} onChange={(event) => setSearch(event.target.value)} />{search && <button className="icon-button" aria-label="Clear search" onClick={() => setSearch('')}><Icon name="close" size={16} /></button>}</div><div className="filter-row"><Icon name="filter" size={17} /><label className="sr-only" htmlFor="region">Region</label><select id="region" value={country} onChange={(event) => setCountry(event.target.value)}>{['All regions', 'United Kingdom', 'Sweden', 'United States'].map((value) => <option key={value}>{value}</option>)}</select></div></section><div className="results-heading"><p><strong>{filtered.length}</strong> apparel buyer{filtered.length !== 1 ? 's' : ''} found</p></div>{filtered.length ? <div className="supplier-grid">{filtered.map((buyer) => <BuyerCard key={buyer.id} buyer={buyer} onOpen={onBuyer} />)}</div> : <div className="panel"><EmptyState title="No buyers match your filter" description="Try resetting your region filter."><Button variant="secondary" onClick={() => { setSearch(''); setCountry('All regions') }}>Reset filters</Button></EmptyState></div>}<p className="data-note"><Icon name="help" size={16} />All apparel buyers provide verified working capital and insurance terms.</p></>
+  return <><div className="page-heading"><div><p className="eyebrow" style={{ color: '#254e3b' }}>APPAREL BUYER NETWORK</p><h1 style={{ fontFamily: 'Georgia, serif' }}>Verified industrial off-takers.</h1><p>Find apparel brands looking for sustainable biomass and crop residue supply.</p></div><span className="network-label"><Icon name="people" size={17} />3 verified buyers</span></div><div className="market-intro"><Icon name="leaf" size={26} /><p>Guaranteed purchase agreements.<span>Secure working capital and crop insurance backing for your farm union.</span></p><Badge>Decarbonization partners</Badge></div><section className="filters panel" aria-label="Filter buyers"><div className="search-field"><Icon name="search" size={19} /><input aria-label="Search buyers" placeholder="Search apparel buyers or locations…" value={search} onChange={(event) => setSearch(event.target.value)} />{search && <button className="icon-button" aria-label="Clear search" onClick={() => setSearch('')}><Icon name="close" size={16} /></button>}</div><div className="filter-row"><Icon name="filter" size={17} /><label className="sr-only" htmlFor="region">Region</label><select id="region" value={country} onChange={(event) => setCountry(event.target.value)}>{['All regions', 'United Kingdom', 'Sweden', 'United States'].map((value) => <option key={value}>{value}</option>)}</select></div></section><div className="results-heading"><p><strong>{filtered.length}</strong> apparel buyer{filtered.length !== 1 ? 's' : ''} found</p></div>{filtered.length ? <div className="supplier-grid">{filtered.map((buyer) => <BuyerCard key={buyer.id} buyer={buyer} onOpen={onBuyer} />)}</div> : <div className="panel"><EmptyState title="No buyers match your filter" description="Try resetting your region filter."><Button variant="secondary" onClick={() => { setSearch(''); setCountry('All regions') }}>Reset filters</Button></EmptyState></div>}<p className="data-note"><Icon name="help" size={16} />All apparel buyers provide verified working capital and insurance terms.</p></>
 }
 
 function Contracts({ contracts, onOpen, navigate, initialTab }) {
@@ -69,13 +74,13 @@ function Contracts({ contracts, onOpen, navigate, initialTab }) {
   const [search, setSearch] = useState('')
   const tabs = ['All contracts', 'Active', 'Requests', 'Completed']
   const filtered = contracts.filter((contract) => (tab === 'All contracts' || (tab === 'Requests' ? ['Incoming request', 'Awaiting response'].includes(contract.status) : contract.status === tab)) && `${contract.id}`.toLowerCase().includes(search.toLowerCase().trim()))
-  return <><div className="page-heading"><div><p className="eyebrow">UNION CONTRACTS &amp; FINANCING</p><h1 style={{ fontFamily: 'Georgia, serif' }}>Supply agreements &amp; working capital.</h1><p>Manage purchase orders, advance funding, and harvest deliveries.</p></div><Button onClick={() => navigate('buyers')} icon="plus">Request new contract</Button></div><div className="contracts-summary"><div><Icon name="file" /><strong>{contracts.filter((contract) => contract.status === 'Active').length}</strong><span>active agreements</span></div><div><Icon name="clock" /><strong>{contracts.filter((contract) => ['Incoming request', 'Awaiting response'].includes(contract.status)).length}</strong><span>pending offers</span></div><div><Icon name="check" /><strong>{contracts.filter((contract) => contract.status === 'Completed').length}</strong><span>completed harvests</span></div></div><section className="panel"><div className="contracts-toolbar"><div className="tabs" role="tablist" aria-label="Contract status">{tabs.map((name) => <button role="tab" aria-selected={tab === name} key={name} onClick={() => setTab(name)} className={tab === name ? 'selected' : ''}>{name}{name === 'Requests' && <span>{contracts.filter((contract) => ['Incoming request', 'Awaiting response'].includes(contract.status)).length}</span>}</button>)}</div><div className="search-field compact-search"><Icon name="search" size={17} /><input aria-label="Search contracts" placeholder="Search contracts…" value={search} onChange={(event) => setSearch(event.target.value)} /></div></div>{filtered.length ? <FarmerContractTable contracts={filtered} onOpen={onOpen} /> : <EmptyState title="No contracts here yet" description={search ? 'Try another contract ID.' : 'Your agreements will appear here.'}><Button variant="secondary" onClick={() => { setSearch(''); setTab('All contracts') }}>Show all contracts</Button></EmptyState>}</section><p className="data-note"><Icon name="help" size={16} />Demo actions update this union's sample records only.</p></>
+  return <><div className="page-heading"><div><p className="eyebrow" style={{ color: '#254e3b' }}>UNION CONTRACTS &amp; FINANCING</p><h1 style={{ fontFamily: 'Georgia, serif' }}>Supply agreements &amp; working capital.</h1><p>Manage purchase orders, advance funding, and harvest deliveries.</p></div><Button style={{ background: '#254e3b' }} onClick={() => navigate('buyers')} icon="plus">Request new contract</Button></div><div className="contracts-summary"><div><Icon name="file" /><strong>{contracts.filter((contract) => contract.status === 'Active').length}</strong><span>active agreements</span></div><div><Icon name="clock" /><strong>{contracts.filter((contract) => ['Incoming request', 'Awaiting response'].includes(contract.status)).length}</strong><span>pending offers</span></div><div><Icon name="check" /><strong>{contracts.filter((contract) => contract.status === 'Completed').length}</strong><span>completed harvests</span></div></div><section className="panel"><div className="contracts-toolbar"><div className="tabs" role="tablist" aria-label="Contract status">{tabs.map((name) => <button role="tab" aria-selected={tab === name} key={name} onClick={() => setTab(name)} className={tab === name ? 'selected' : ''} style={tab === name ? { color: '#254e3b', borderColor: '#254e3b' } : {}}>{name}{name === 'Requests' && <span style={{ background: '#eef4e3', color: '#254e3b' }}>{contracts.filter((contract) => ['Incoming request', 'Awaiting response'].includes(contract.status)).length}</span>}</button>)}</div><div className="search-field compact-search"><Icon name="search" size={17} /><input aria-label="Search contracts" placeholder="Search contracts…" value={search} onChange={(event) => setSearch(event.target.value)} /></div></div>{filtered.length ? <FarmerContractTable contracts={filtered} onOpen={onOpen} /> : <EmptyState title="No contracts here yet" description={search ? 'Try another contract ID.' : 'Your agreements will appear here.'}><Button variant="secondary" onClick={() => { setSearch(''); setTab('All contracts') }}>Show all contracts</Button></EmptyState>}</section><p className="data-note"><Icon name="help" size={16} />Demo actions update this union's sample records only.</p></>
 }
 
 function ContractDetails({ contract, onUpdate, onDecision, onReportRisk }) {
   const total = contract.volume * contract.price
   const progress = Math.round(contract.delivered / contract.volume * 100)
-  return <><div className="contract-detail-top"><div className="table-supplier"><div className="supplier-avatar forest" style={{ fontFamily: 'Georgia, serif' }}>NA</div><div><strong>Northline Apparel</strong><p>Biomass Off-take Agreement · Global Supply</p></div></div><StatusBadge status={contract.status} /></div><dl className="detail-list"><div><dt>Supply commitment</dt><dd>{contract.volume} tonnes</dd></div><div><dt>Unit price</dt><dd>{money(contract.price)} / tonne</dd></div><div><dt>Total contract value</dt><dd>{money(total)}</dd></div><div><dt>Working capital advance</dt><dd>{money(total * (contract.advance || 30) / 100)} (30% upfront)</dd></div><div><dt>Insurance protection</dt><dd>Covered against climate shocks</dd></div><div><dt>Target delivery</dt><dd>{displayDate(contract.date)}</dd></div></dl><div className="delivery-progress"><div><strong>Harvest delivery progress</strong><span>{contract.delivered} / {contract.volume} t</span></div><progress value={contract.delivered} max={contract.volume} aria-label="Harvest delivery progress" /><small>{progress}% of biomass shipped to buyer</small></div>{contract.notes && <div className="review-notes"><strong>Contract terms</strong><p>{contract.notes}</p></div>}{contract.risk && <div className={`contract-alert ${contract.riskAcknowledged ? 'acknowledged' : ''}`}><Icon name="alert" /><div><strong>Harvest Disruption Logged</strong><p>{contract.risk}</p></div></div>}<p className="data-note"><Icon name="help" size={16} />Working capital is automatically disbursed upon contract validation.</p><footer className="modal-actions contract-actions">{contract.status === 'Incoming request' && <><Button variant="secondary" onClick={() => onDecision('decline')}>Decline offer</Button><Button icon="check" onClick={() => onDecision('accept')}>Accept purchase contract</Button></>}{contract.status === 'Active' && <><Button variant="secondary" icon="alert" onClick={() => onReportRisk()}>Report harvest issue</Button><Button icon="truck" onClick={() => onDecision('delivery')}>Record harvest shipment</Button></>}{['Completed', 'Declined', 'Cancelled'].includes(contract.status) && <span className="muted small">This agreement is {contract.status.toLowerCase()}.</span>}</footer></>
+  return <><div className="contract-detail-top"><div className="table-supplier"><div className="supplier-avatar forest" style={{ fontFamily: 'Georgia, serif', background: '#eef4e3', color: '#254e3b' }}>NA</div><div><strong>Northline Apparel</strong><p>Biomass Off-take Agreement · Global Supply</p></div></div><StatusBadge status={contract.status} /></div><dl className="detail-list"><div><dt>Supply commitment</dt><dd>{contract.volume} tonnes</dd></div><div><dt>Unit price</dt><dd>{money(contract.price)} / tonne</dd></div><div><dt>Total contract value</dt><dd>{money(total)}</dd></div><div><dt>Working capital advance</dt><dd>{money(total * (contract.advance || 30) / 100)} (30% upfront)</dd></div><div><dt>Insurance protection</dt><dd>Covered against climate shocks</dd></div><div><dt>Target delivery</dt><dd>{displayDate(contract.date)}</dd></div></dl><div className="delivery-progress"><div><strong>Harvest delivery progress</strong><span>{contract.delivered} / {contract.volume} t</span></div><progress value={contract.delivered} max={contract.volume} aria-label="Harvest delivery progress" /><small>{progress}% of biomass shipped to buyer</small></div>{contract.notes && <div className="review-notes"><strong>Contract terms</strong><p>{contract.notes}</p></div>}{contract.risk && <div className={`contract-alert ${contract.riskAcknowledged ? 'acknowledged' : ''}`}><Icon name="alert" /><div><strong>Harvest Disruption Logged</strong><p>{contract.risk}</p></div></div>}<p className="data-note"><Icon name="help" size={16} />Working capital is automatically disbursed upon contract validation.</p><footer className="modal-actions contract-actions">{contract.status === 'Incoming request' && <><Button variant="secondary" onClick={() => onDecision('decline')}>Decline offer</Button><Button style={{ background: '#254e3b' }} icon="check" onClick={() => onDecision('accept')}>Accept purchase contract</Button></>}{contract.status === 'Active' && <><Button variant="secondary" icon="alert" onClick={() => onReportRisk()}>Report harvest issue</Button><Button style={{ background: '#254e3b' }} icon="truck" onClick={() => onDecision('delivery')}>Record harvest shipment</Button></>}{['Completed', 'Declined', 'Cancelled'].includes(contract.status) && <span className="muted small">This agreement is {contract.status.toLowerCase()}.</span>}</footer></>
 }
 
 function ReportDisruptionModal({ contracts, onSubmit, onClose }) {
@@ -94,7 +99,7 @@ function ReportDisruptionModal({ contracts, onSubmit, onClose }) {
     </div>
     <footer className="modal-actions">
       <Button variant="secondary" onClick={onClose}>Cancel</Button>
-      <Button onClick={() => { onSubmit(contractId, reason); onClose(); }}>Submit disruption report</Button>
+      <Button style={{ background: '#254e3b' }} onClick={() => { onSubmit(contractId, reason); onClose(); }}>Submit disruption report</Button>
     </footer>
   </Modal>
 }
@@ -112,7 +117,7 @@ export default function FarmerApp({ onSwitchRole }) {
   useEffect(() => { document.title = `${pageNames[page]} · Terra Farmer Portal`; window.scrollTo(0, 0) }, [page])
   useEffect(() => { if (!mobileNav) return; const escape = (event) => { if (event.key === 'Escape') setMobileNav(false) }; window.addEventListener('keydown', escape); return () => window.removeEventListener('keydown', escape) }, [mobileNav])
 
-  function navigate(next, tab = 'All contracts') { setContractTab(tab); setPage(next); window.location.hash = next; setMobileNav(false); setModal(null) }
+  function navigate(next, tab = 'All contracts') { setContractTab(tab); setPage(next); window.location.hash = 'farmer-' + next; setMobileNav(false); setModal(null) }
   function openBuyer(buyer) { setModal({ type: 'buyer', buyerId: buyer.id }) }
   function openContract(contract) { setModal({ type: 'contract', contractId: contract.id }) }
   function updateContract(id, changes, message) { setContracts((current) => current.map((contract) => contract.id === id ? { ...contract, ...changes } : contract)); setToast(message) }
@@ -151,40 +156,40 @@ export default function FarmerApp({ onSwitchRole }) {
     {mobileNav && <button className="nav-scrim" aria-label="Close navigation" onClick={() => setMobileNav(false)} />}
     
     <aside className={`sidebar ${mobileNav ? 'is-open' : ''}`} aria-label="Main navigation">
-      <a href="#overview" className="brand" onClick={() => navigate('overview')}>
-        <span className="brand-symbol" style={{ background: '#e1ebd0' }}><Icon name="leaf" size={27} /></span>
-        <span>terra<span className="brand-period">.</span><small>FARMER UNION PORTAL</small></span>
+      <a href="#farmer-overview" className="brand" onClick={() => navigate('overview')}>
+        <span className="brand-symbol" style={{ background: '#eef4e3', color: '#254e3b' }}><Icon name="leaf" size={27} /></span>
+        <span>terra<span className="brand-period" style={{ color: '#254e3b' }}>.</span><small>FARMER UNION PORTAL</small></span>
       </a>
       <div className="workspace-label">UNION WORKSPACE</div>
       <div className="company-switch">
-        <div className="company-avatar" style={{ background: '#e6edda', color: '#254e3b' }}>G</div>
+        <div className="company-avatar" style={{ background: '#eef4e3', color: '#254e3b' }}>G</div>
         <div><strong>GreenValley Cooperative</strong><span>Smallholder Union · Demo</span></div>
-        <Icon name="shield" size={17} />
+        <Icon name="shield" size={17} style={{ color: '#254e3b' }} />
       </div>
       <div className="nav-section-label">AGRICULTURE &amp; OFF-TAKE</div>
       <nav>
         {[{ id: 'overview', icon: 'grid', label: 'Overview' }, { id: 'buyers', icon: 'leaf', label: 'Apparel Buyers' }, { id: 'contracts', icon: 'file', label: 'Contracts' }].map((item) => (
-          <a key={item.id} href={`#${item.id}`} onClick={() => navigate(item.id)} className={`nav-link ${page === item.id ? 'active' : ''}`} aria-current={page === item.id ? 'page' : undefined}>
+          <a key={item.id} href={`#farmer-${item.id}`} onClick={() => navigate(item.id)} className={`nav-link ${page === item.id ? 'active' : ''}`} style={page === item.id ? { color: '#254e3b', background: '#eef4e3', fontWeight: '650' } : {}} aria-current={page === item.id ? 'page' : undefined}>
             <Icon name={item.icon} size={20} />{item.label}
-            {item.id === 'contracts' && incomingCount > 0 && <span className="nav-count">{incomingCount}</span>}
+            {item.id === 'contracts' && incomingCount > 0 && <span className="nav-count" style={{ background: '#eef4e3', color: '#254e3b' }}>{incomingCount}</span>}
           </a>
         ))}
       </nav>
       <div className="sidebar-bottom">
         {onSwitchRole && (
-          <button className="sidebar-help" onClick={onSwitchRole} style={{ marginBottom: '10px', background: '#eef2e7', borderRadius: '7px' }}>
+          <button className="sidebar-help" onClick={onSwitchRole} style={{ marginBottom: '10px', background: '#eef4e3', borderRadius: '7px' }}>
             <Icon name="people" size={18} />Switch Role / Portal<Icon name="arrow" size={15} />
           </button>
         )}
         <div className="sidebar-note">
-          <span className="sidebar-note-icon"><Icon name="leaf" size={24} /></span>
+          <span className="sidebar-note-icon" style={{ color: '#254e3b' }}><Icon name="leaf" size={24} /></span>
           <h3>Climate resilience &amp; income.</h3>
           <p>Guaranteed biomass off-take powering apparel decarbonization.</p>
           <span className="sidebar-note-line" />
         </div>
         <button className="sidebar-help" onClick={() => setModal({ type: 'help' })}><Icon name="help" size={18} />About this portal<Icon name="arrow" size={15} /></button>
         <div className="user-profile">
-          <span className="user-avatar" style={{ background: '#e1ebd0', color: '#254e3b' }}>GV</span>
+          <span className="user-avatar" style={{ background: '#eef4e3', color: '#254e3b' }}>GV</span>
           <div><strong>GreenValley Union</strong><small>Smallholder Cooperative</small></div>
           <span className="online-dot" />
         </div>
@@ -200,13 +205,13 @@ export default function FarmerApp({ onSwitchRole }) {
           <strong>{pageNames[page]}</strong>
         </div>
         <div className="topbar-right">
-          <span className="demo-pill"><span />Interactive farmer demo</span>
+          <span className="demo-pill" style={{ color: '#254e3b' }}><span style={{ background: '#254e3b' }} />Interactive farmer demo</span>
           <span className="topbar-divider" />
           <button className="notification-button icon-button" aria-label={`Notifications: ${alerts.length + incomingCount} updates`} onClick={() => setModal({ type: 'notifications' })}>
             <Icon name="bell" size={20} />
-            {alerts.length + incomingCount > 0 && <span />}
+            {alerts.length + incomingCount > 0 && <span style={{ background: '#254e3b' }} />}
           </button>
-          <span className="topbar-avatar" style={{ background: '#e1ebd0', color: '#254e3b' }}>GV</span>
+          <span className="topbar-avatar" style={{ background: '#eef4e3', color: '#254e3b' }}>GV</span>
         </div>
       </header>
 
@@ -214,7 +219,7 @@ export default function FarmerApp({ onSwitchRole }) {
         <div className="demo-notice">
           <span><Icon name="leaf" size={15} />Smallholder Biomass &amp; Working Capital Workspace</span>
           <p>Connect with apparel buyers, secure advance financing, and report harvests.</p>
-          <button onClick={() => setModal({ type: 'reset' })}>Reset demo<Icon name="reset" size={13} /></button>
+          <button style={{ color: '#254e3b' }} onClick={() => setModal({ type: 'reset' })}>Reset demo<Icon name="reset" size={13} /></button>
         </div>
         {storageUnavailable && <p role="status" className="storage-warning">Browser storage is unavailable. Changes will last for this session only.</p>}
 
@@ -259,7 +264,7 @@ export default function FarmerApp({ onSwitchRole }) {
         <p className="confirm-description">{confirmLabels[modal.action][1]}</p>
         <footer className="modal-actions">
           <Button variant="secondary" onClick={() => openContract(currentContract)}>Go back</Button>
-          <Button onClick={confirmAction}>{confirmLabels[modal.action][2]}</Button>
+          <Button style={{ background: '#254e3b' }} onClick={confirmAction}>{confirmLabels[modal.action][2]}</Button>
         </footer>
       </Modal>
     )}
@@ -269,7 +274,7 @@ export default function FarmerApp({ onSwitchRole }) {
         <p className="confirm-description">Reset this browser's demo agreements to original sample records.</p>
         <footer className="modal-actions">
           <Button variant="secondary" onClick={() => setModal(null)}>Keep changes</Button>
-          <Button onClick={() => { resetContracts(); setModal(null); setToast('Farmer workspace reset.'); navigate('overview') }}>Reset sample data</Button>
+          <Button style={{ background: '#254e3b' }} onClick={() => { resetContracts(); setModal(null); setToast('Farmer workspace reset.'); navigate('overview') }}>Reset sample data</Button>
         </footer>
       </Modal>
     )}
@@ -286,7 +291,7 @@ export default function FarmerApp({ onSwitchRole }) {
             <li>Track harvest shipments and fulfillment milestones.</li>
           </ol>
         </div>
-        <footer className="modal-actions"><Button onClick={() => { setModal(null); navigate('buyers') }}>Explore buyers<Icon name="arrow" size={17} /></Button></footer>
+        <footer className="modal-actions"><Button style={{ background: '#254e3b' }} onClick={() => { setModal(null); navigate('buyers') }}>Explore buyers<Icon name="arrow" size={17} /></Button></footer>
       </Modal>
     )}
 
