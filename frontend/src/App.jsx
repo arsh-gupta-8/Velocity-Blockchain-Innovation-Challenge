@@ -1,122 +1,133 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect, useState } from 'react'
+import { cooperatives, money, displayDate, supplierFor } from './data/demo'
+import { useDemoContracts } from './hooks/useDemoContracts'
+import { Badge, Button, EmptyState, Icon, Modal, StatusBadge, SupplierAvatar } from './components/ui'
+import ContractRequest from './components/ContractRequest'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const pageNames = { overview: 'Overview', cooperatives: 'Cooperatives', contracts: 'Contracts' }
+const readPage = () => Object.hasOwn(pageNames, window.location.hash.slice(1)) ? window.location.hash.slice(1) : 'overview'
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+function SupplierCard({ supplier, onOpen }) {
+  return <article className="supplier-card">
+    <div className={`supplier-cover ${supplier.color}`}><span className="cover-line line-one" /><span className="cover-line line-two" /><span className="cover-line line-three" /><span className="material-tag"><Icon name="leaf" size={14} />{supplier.material}</span><span className="cover-location">{supplier.country}</span><div className="cover-plant"><Icon name="leaf" size={102} /></div></div>
+    <div className="supplier-card-body"><div className="supplier-title"><h3>{supplier.name}</h3><span className="rating"><Icon name="star" size={14} />{supplier.rating.toFixed(1)}</span></div><p className="location"><Icon name="pin" size={14} />{supplier.region}, {supplier.country}</p><div className="supplier-card-metrics"><span><small>Monthly capacity</small><strong>{supplier.capacity} <em>tonnes</em></strong></span><span><small>Indicative price</small><strong>{money(supplier.price)} <em>/ t</em></strong></span></div><div className="supplier-card-footer"><span className={`document-status ${supplier.certification === 'Documentation pending' ? 'pending' : ''}`}><Icon name={supplier.certification === 'Documentation pending' ? 'clock' : 'shield'} size={14} />{supplier.certification === 'Documentation pending' ? 'Docs pending' : 'Sample docs available'}</span><button className="text-button" onClick={() => onOpen(supplier)}>View profile<Icon name="arrow" size={15} /></button></div></div>
+  </article>
 }
 
-export default App
+function SupplierDetails({ supplier, onRequest }) {
+  return <><div className="profile-intro"><SupplierAvatar supplier={supplier} large /><div><Badge tone="green">Sample cooperative</Badge><h3>{supplier.name}</h3><p className="location"><Icon name="pin" size={15} />{supplier.region}, {supplier.country}</p></div></div><p className="profile-description">{supplier.description}</p><div className="profile-stats"><div><strong>{supplier.farmers}</strong><span>Member farmers</span></div><div><strong>{supplier.fulfillment}%</strong><span>Fulfillment rate</span></div><div><strong>{supplier.completed}</strong><span>Completed contracts</span></div></div><h4>Supply at a glance</h4><dl className="detail-list"><div><dt>Biomass</dt><dd>{supplier.material}</dd></div><div><dt>Monthly capacity</dt><dd>{supplier.capacity} tonnes</dd></div><div><dt>Indicative price</dt><dd>{money(supplier.price)} / tonne</dd></div><div><dt>Typical lead time</dt><dd>{supplier.leadTime}</dd></div><div><dt>Moisture content</dt><dd>{supplier.moisture}</dd></div><div><dt>Indicative energy content</dt><dd>{supplier.energy}</dd></div></dl><h4>Sourcing & documentation</h4><div className="practice-list">{supplier.practices.map((practice) => <span key={practice}><Icon name="check" size={16} />{practice}</span>)}</div><dl className="detail-list compact"><div><dt>Sustainability documents</dt><dd>{supplier.certification}</dd></div><div><dt>Pesticide information</dt><dd>{supplier.pesticide}</dd></div><div><dt>Carbon footprint</dt><dd>Assessment not available</dd></div></dl><p className="data-note"><Icon name="help" size={16} />All profiles, ratings, and documentation statuses are fictional examples. No certification or environmental benefit has been independently verified.</p><footer className="modal-actions"><span className="muted small">Build a partnership with clear terms.</span><Button onClick={() => onRequest(supplier)} icon="plus">Request a contract</Button></footer></>
+}
+
+function ContractTable({ contracts, onOpen, compact = false }) {
+  return <div className="table-scroll"><table><thead><tr><th>Cooperative / contract</th><th>Volume</th>{!compact && <th>Contract value</th>}<th>Target delivery</th><th>Status</th><th><span className="sr-only">Details</span></th></tr></thead><tbody>{contracts.map((contract) => {
+    const supplier = supplierFor(contract.supplierId)
+    return <tr key={contract.id}><td><div className="table-supplier"><SupplierAvatar supplier={supplier} /><div><button className="table-title" onClick={() => onOpen(contract)}>{supplier.name}</button><span>{contract.id} <span className="subtle-dot">·</span> {supplier.material}</span></div></div></td><td><strong className="table-number">{contract.volume} t</strong><small>{contract.delivered} t received</small></td>{!compact && <td>{money(contract.volume * contract.price)}</td>}<td>{displayDate(contract.date)}{contract.risk && !contract.riskAcknowledged && <span className="risk-inline"><Icon name="alert" size={12} />Delivery alert</span>}</td><td><StatusBadge status={contract.status} /></td><td><button className="icon-button" aria-label={`View contract ${contract.id}`} onClick={() => onOpen(contract)}><Icon name="chevron" size={17} /></button></td></tr>
+  })}</tbody></table></div>
+}
+
+function Dashboard({ contracts, navigate, onSupplier, onContract }) {
+  const active = contracts.filter((contract) => contract.status === 'Active')
+  const incoming = contracts.filter((contract) => contract.status === 'Incoming request')
+  const approved = contracts.filter((contract) => ['Active', 'Completed'].includes(contract.status))
+  const totalVolume = approved.reduce((sum, contract) => sum + contract.volume, 0)
+  const delivered = approved.reduce((sum, contract) => sum + contract.delivered, 0)
+  const advances = approved.filter((contract) => contract.advanceRecorded).reduce((sum, contract) => sum + contract.volume * contract.price * contract.advance / 100, 0)
+  const risk = active.find((contract) => contract.risk && !contract.riskAcknowledged)
+  const stats = [
+    { label: 'Active contracts', value: String(active.length).padStart(2, '0'), note: `${new Set(active.map((contract) => contract.supplierId)).size} cooperative partners`, icon: 'file', tone: 'sage' },
+    { label: 'Biomass contracted', value: totalVolume.toLocaleString(), unit: 't', note: `${delivered} tonnes received`, icon: 'leaf', tone: 'wheat' },
+    { label: 'Recorded advances', value: money(advances), note: 'Sample working capital records', icon: 'wallet', tone: 'clay' },
+    { label: 'Requests to review', value: String(incoming.length).padStart(2, '0'), note: 'From your future partners', icon: 'people', tone: 'lilac' },
+  ]
+  return <>
+    <div className="page-heading"><div><p className="eyebrow">YOUR PROCUREMENT WORKSPACE</p><h1>A clearer view of your supply.</h1><p>Source responsibly. Support growers. Keep things moving.</p></div><Button onClick={() => navigate('cooperatives')} icon="plus">Find a supply partner</Button></div>
+    <section className="hero-grid"><div className="impact-banner"><div className="hero-copy"><span className="hero-label"><span />GROWING BETTER, TOGETHER</span><h2>Better sourcing.<br />Stronger communities.</h2><p>Connect with farming cooperatives and put agricultural residues to work.</p><button onClick={() => navigate('cooperatives')} className="hero-link">Explore cooperatives<Icon name="arrow" size={18} /></button></div><div className="hero-art" aria-hidden="true"><div className="sun" /><div className="field field-back" /><div className="field field-mid" /><div className="field field-front" /><div className="hero-sprout"><Icon name="leaf" size={118} /></div><span className="art-caption">SMALL FARMS. SHARED PROGRESS.</span></div></div><div className="next-card"><div className="next-card-top"><span className="square-icon"><Icon name="people" size={22} /></span><Badge tone={incoming.length ? 'amber' : 'green'}>{incoming.length ? 'Your next step' : 'All caught up'}</Badge></div><h3>{incoming.length ? 'A new partnership awaits.' : 'Make room for what’s next.'}</h3><p>{incoming.length ? `${supplierFor(incoming[0].supplierId).name} sent you a supply proposal. Take a look at the terms.` : 'Discover cooperatives and build your next biomass supply partnership.'}</p><button className="text-button" onClick={() => incoming.length ? onContract(incoming[0]) : navigate('cooperatives')}>{incoming.length ? 'Review proposal' : 'Browse cooperatives'}<Icon name="arrow" size={17} /></button></div></section>
+    <section className="stats-grid" aria-label="Procurement summary">{stats.map((stat) => <article className="stat-card" key={stat.label}><div className="stat-top"><span>{stat.label}</span><span className={`stat-icon ${stat.tone}`}><Icon name={stat.icon} size={18} /></span></div><div className="stat-value">{stat.value}<span>{stat.unit}</span></div><p>{stat.note}</p></article>)}</section>
+    {risk && <div className="risk-banner"><span className="risk-banner-icon"><Icon name="alert" /></span><div><strong>A delivery needs your attention</strong><p>{supplierFor(risk.supplierId).name} reported a weather-related delay for {risk.id}.</p></div><button className="text-button" onClick={() => onContract(risk)}>Review update<Icon name="arrow" size={16} /></button></div>}
+    <section className="section-block"><div className="section-heading"><div><h2>Your supply in motion</h2><p>Recent agreements and the milestones ahead.</p></div><button className="text-button" onClick={() => navigate('contracts')}>View all contracts<Icon name="arrow" size={16} /></button></div><div className="panel">{contracts.length ? <ContractTable contracts={contracts.slice(0, 3)} onOpen={onContract} compact /> : <EmptyState title="Your first partnership starts here" description="Find a cooperative and send a sample contract request."><Button onClick={() => navigate('cooperatives')}>Explore cooperatives</Button></EmptyState>}</div></section>
+    <section className="section-block"><div className="section-heading"><div><div className="inline-heading"><h2>Meet your next supply partner</h2><Badge>Sample profiles</Badge></div><p>Smallholder networks. Shared ambition. New possibilities.</p></div><button className="text-button" onClick={() => navigate('cooperatives')}>Explore marketplace<Icon name="arrow" size={16} /></button></div><div className="supplier-grid featured-grid">{cooperatives.slice(0, 3).map((supplier) => <SupplierCard key={supplier.id} supplier={supplier} onOpen={onSupplier} />)}</div></section>
+  </>
+}
+
+function Marketplace({ onSupplier }) {
+  const [search, setSearch] = useState('')
+  const [country, setCountry] = useState('All regions')
+  const [material, setMaterial] = useState('All biomass')
+  const [capacity, setCapacity] = useState('0')
+  const [documentation, setDocumentation] = useState('All documentation')
+  const [sort, setSort] = useState('rating')
+  const filtered = cooperatives.filter((supplier) => `${supplier.name} ${supplier.material} ${supplier.country} ${supplier.region}`.toLowerCase().includes(search.toLowerCase().trim()) && (country === 'All regions' || supplier.country === country) && (material === 'All biomass' || supplier.material === material) && supplier.capacity >= Number(capacity) && (documentation === 'All documentation' || supplier.certification === documentation)).sort((a, b) => sort === 'price' ? a.price - b.price : sort === 'capacity' ? b.capacity - a.capacity : b.rating - a.rating)
+  const reset = () => { setSearch(''); setCountry('All regions'); setMaterial('All biomass'); setCapacity('0'); setDocumentation('All documentation') }
+  const hasFilters = search || country !== 'All regions' || material !== 'All biomass' || capacity !== '0' || documentation !== 'All documentation'
+  return <><div className="page-heading"><div><p className="eyebrow">THE COOPERATIVE NETWORK</p><h1>Good partners. Better possibilities.</h1><p>Find biomass suppliers that fit your sourcing needs.</p></div><span className="network-label"><Icon name="people" size={17} />6 sample cooperatives · 3 countries</span></div><div className="market-intro"><Icon name="leaf" size={26} /><p>Start with the people behind your supply.<span>Explore capacity, sourcing practices, and proposed terms in one place.</span></p><Badge>Biomass for industrial energy</Badge></div><section className="filters panel" aria-label="Filter cooperatives"><div className="search-field"><Icon name="search" size={19} /><input aria-label="Search cooperatives" placeholder="Search cooperatives, biomass, or location…" value={search} onChange={(event) => setSearch(event.target.value)} />{search && <button className="icon-button" aria-label="Clear search" onClick={() => setSearch('')}><Icon name="close" size={16} /></button>}</div><div className="filter-row"><Icon name="filter" size={17} /><label className="sr-only" htmlFor="region">Region</label><select id="region" value={country} onChange={(event) => setCountry(event.target.value)}>{['All regions', 'Sri Lanka', 'India', 'Vietnam'].map((value) => <option key={value}>{value}</option>)}</select><label className="sr-only" htmlFor="biomass">Biomass type</label><select id="biomass" value={material} onChange={(event) => setMaterial(event.target.value)}>{['All biomass', ...new Set(cooperatives.map((supplier) => supplier.material))].map((value) => <option key={value}>{value}</option>)}</select><label className="sr-only" htmlFor="capacity">Minimum monthly capacity</label><select id="capacity" value={capacity} onChange={(event) => setCapacity(event.target.value)}><option value="0">Any capacity</option><option value="150">150+ tonnes / month</option><option value="250">250+ tonnes / month</option></select><label className="sr-only" htmlFor="documentation">Sustainability documentation</label><select id="documentation" value={documentation} onChange={(event) => setDocumentation(event.target.value)}>{['All documentation', 'Sustainability documented', 'Organic documented', 'Documentation pending'].map((value) => <option key={value}>{value}</option>)}</select>{hasFilters && <button className="text-button" onClick={reset}>Clear filters</button>}</div></section><div className="results-heading"><p><strong>{filtered.length}</strong> cooperative{filtered.length !== 1 ? 's' : ''} found</p><label>Sort by <select value={sort} onChange={(event) => setSort(event.target.value)}><option value="rating">Highest sample rating</option><option value="price">Lowest indicative price</option><option value="capacity">Highest capacity</option></select></label></div>{filtered.length ? <div className="supplier-grid">{filtered.map((supplier) => <SupplierCard key={supplier.id} supplier={supplier} onOpen={onSupplier} />)}</div> : <div className="panel"><EmptyState title="No cooperatives match just yet" description="Try a different region, biomass type, or minimum capacity."><Button variant="secondary" onClick={reset}>Clear filters</Button></EmptyState></div>}<p className="data-note"><Icon name="help" size={16} />Sample supplier information is illustrative. Capacity, pricing, ratings, and sustainability claims require verification before procurement.</p></>
+}
+
+function Contracts({ contracts, onOpen, navigate, initialTab }) {
+  const [tab, setTab] = useState(initialTab || 'All contracts')
+  const [search, setSearch] = useState('')
+  const tabs = ['All contracts', 'Active', 'Requests', 'Completed']
+  const filtered = contracts.filter((contract) => (tab === 'All contracts' || (tab === 'Requests' ? ['Incoming request', 'Awaiting response'].includes(contract.status) : contract.status === tab)) && `${contract.id} ${supplierFor(contract.supplierId).name}`.toLowerCase().includes(search.toLowerCase().trim()))
+  return <><div className="page-heading"><div><p className="eyebrow">AGREEMENTS THAT MOVE YOU FORWARD</p><h1>Your partnerships, in one place.</h1><p>Manage proposals, working capital commitments, and deliveries.</p></div><Button onClick={() => navigate('cooperatives')} icon="plus">New contract request</Button></div><div className="contracts-summary"><div><Icon name="file" /><strong>{contracts.filter((contract) => contract.status === 'Active').length}</strong><span>active agreements</span></div><div><Icon name="clock" /><strong>{contracts.filter((contract) => ['Incoming request', 'Awaiting response'].includes(contract.status)).length}</strong><span>pending requests</span></div><div><Icon name="check" /><strong>{contracts.filter((contract) => contract.status === 'Completed').length}</strong><span>completed deliveries</span></div></div><section className="panel"><div className="contracts-toolbar"><div className="tabs" role="tablist" aria-label="Contract status">{tabs.map((name) => <button role="tab" aria-selected={tab === name} key={name} onClick={() => setTab(name)} className={tab === name ? 'selected' : ''}>{name}{name === 'Requests' && <span>{contracts.filter((contract) => ['Incoming request', 'Awaiting response'].includes(contract.status)).length}</span>}</button>)}</div><div className="search-field compact-search"><Icon name="search" size={17} /><input aria-label="Search contracts" placeholder="Search contracts…" value={search} onChange={(event) => setSearch(event.target.value)} /></div></div>{filtered.length ? <ContractTable contracts={filtered} onOpen={onOpen} /> : <EmptyState title="No contracts here yet" description={search ? 'Try another contract ID or cooperative name.' : 'Your matching agreements will appear here.'}><Button variant="secondary" onClick={() => { setSearch(''); setTab('All contracts') }}>Show all contracts</Button></EmptyState>}</section><p className="data-note"><Icon name="help" size={16} />Demo actions update this browser’s sample records only. They do not create legal agreements, bind insurance, or transfer funds.</p></>
+}
+
+function ContractDetails({ contract, onUpdate, onDecision }) {
+  const supplier = supplierFor(contract.supplierId)
+  const total = contract.volume * contract.price
+  const progress = Math.round(contract.delivered / contract.volume * 100)
+  return <><div className="contract-detail-top"><div className="table-supplier"><SupplierAvatar supplier={supplier} /><div><strong>{supplier.name}</strong><p>{supplier.material} · {supplier.country}</p></div></div><StatusBadge status={contract.status} /></div><dl className="detail-list"><div><dt>Supply commitment</dt><dd>{contract.volume} tonnes</dd></div><div><dt>Unit price</dt><dd>{money(contract.price)} / tonne</dd></div><div><dt>Contract value</dt><dd>{money(total)}</dd></div><div><dt>Working capital advance</dt><dd>{money(total * contract.advance / 100)} ({contract.advance}%)</dd></div><div><dt>Advance record</dt><dd>{contract.advanceRecorded ? 'Recorded in sample data' : 'Not recorded'}</dd></div><div><dt>Target delivery</dt><dd>{displayDate(contract.date)}</dd></div><div><dt>Insurance support</dt><dd>{contract.insurance ? 'Buyer commitment proposed' : 'Not included'}</dd></div></dl><div className="delivery-progress"><div><strong>Delivery progress</strong><span>{contract.delivered} / {contract.volume} t</span></div><progress value={contract.delivered} max={contract.volume} aria-label="Biomass delivery progress" /><small>{progress}% of the supply commitment received</small></div>{contract.notes && <div className="review-notes"><strong>Additional terms</strong><p>{contract.notes}</p></div>}{contract.risk && <div className={`contract-alert ${contract.riskAcknowledged ? 'acknowledged' : ''}`}><Icon name={contract.riskAcknowledged ? 'check' : 'alert'} /><div><strong>{contract.riskAcknowledged ? 'Delivery alert acknowledged' : 'Cooperative delivery alert'}</strong><p>{contract.risk}</p>{!contract.riskAcknowledged && <button className="text-button" onClick={() => onUpdate({ riskAcknowledged: true }, 'Sample delivery alert acknowledged.')}>Acknowledge update<Icon name="check" size={15} /></button>}</div></div>}<p className="data-note"><Icon name="help" size={16} />Sample agreement only. No signature, payment, or insurance integration is connected.</p><footer className="modal-actions contract-actions">{contract.status === 'Incoming request' && <><Button variant="secondary" onClick={() => onDecision('decline')}>Decline proposal</Button><Button icon="check" onClick={() => onDecision('accept')}>Accept demo proposal</Button></>}{contract.status === 'Awaiting response' && <><span className="muted small">Waiting for cooperative acceptance.</span><Button variant="secondary" onClick={() => onDecision('cancel')}>Cancel request</Button></>}{contract.status === 'Active' && <>{!contract.advanceRecorded && <Button variant="secondary" icon="wallet" onClick={() => onDecision('advance')}>Record demo advance</Button>}<Button icon="truck" onClick={() => onDecision('delivery')}>Record sample delivery</Button></>}{['Completed', 'Declined', 'Cancelled'].includes(contract.status) && <span className="muted small">This sample agreement is {contract.status.toLowerCase()}.</span>}</footer></>
+}
+
+export default function App() {
+  const [page, setPage] = useState(readPage)
+  const [mobileNav, setMobileNav] = useState(false)
+  const [modal, setModal] = useState(null)
+  const [toast, setToast] = useState('')
+  const [contractTab, setContractTab] = useState('All contracts')
+  const { contracts, setContracts, resetContracts, storageUnavailable } = useDemoContracts()
+  useEffect(() => { const onHash = () => { setPage(readPage()); setModal(null); setMobileNav(false) }; window.addEventListener('hashchange', onHash); return () => window.removeEventListener('hashchange', onHash) }, [])
+  useEffect(() => { if (!toast) return; const timeout = window.setTimeout(() => setToast(''), 5000); return () => window.clearTimeout(timeout) }, [toast])
+  useEffect(() => { document.title = `${pageNames[page]} · Terra`; window.scrollTo(0, 0) }, [page])
+  useEffect(() => { if (!mobileNav) return; const escape = (event) => { if (event.key === 'Escape') setMobileNav(false) }; window.addEventListener('keydown', escape); return () => window.removeEventListener('keydown', escape) }, [mobileNav])
+
+  function navigate(next, tab = 'All contracts') { setContractTab(tab); setPage(next); window.location.hash = next; setMobileNav(false); setModal(null) }
+  function openSupplier(supplier) { setModal({ type: 'supplier', supplierId: supplier.id }) }
+  function openContract(contract) { setModal({ type: 'contract', contractId: contract.id }) }
+  function updateContract(id, changes, message) { setContracts((current) => current.map((contract) => contract.id === id ? { ...contract, ...changes } : contract)); setToast(message) }
+  function createContract(values) {
+    const id = `TR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+    const next = { ...values, id, status: 'Awaiting response', delivered: 0, direction: 'outgoing', createdAt: new Date().toISOString(), advanceRecorded: false }
+    setContracts((current) => [next, ...current]); navigate('contracts', 'Requests'); setToast(`Sample request ${id} created. No funds were transferred.`)
+  }
+  const currentContract = modal?.contractId ? contracts.find((contract) => contract.id === modal.contractId) : null
+  const currentSupplier = modal?.supplierId ? supplierFor(modal.supplierId) : null
+  const incomingCount = contracts.filter((contract) => contract.status === 'Incoming request').length
+  const alerts = contracts.filter((contract) => contract.status === 'Active' && contract.risk && !contract.riskAcknowledged)
+  const confirmLabels = { accept: ['Accept this proposal?', 'This will mark the sample proposal as active. It does not sign a legal agreement or transfer an advance.', 'Accept demo proposal'], decline: ['Decline this proposal?', 'The sample proposal will be marked as declined. No message will be sent to a real cooperative.', 'Decline proposal'], cancel: ['Cancel this request?', 'This sample request will be marked as cancelled. Your other agreements will stay in place.', 'Cancel request'], advance: ['Record a sample advance?', 'This records the proposed advance as arranged in demo data only. No wallet is connected and no money will move.', 'Record demo advance'], delivery: ['Record a sample delivery?', 'Add up to 10 tonnes received to this sample agreement. A fully received agreement will be marked as completed.', 'Record sample delivery'] }
+
+  function confirmAction() {
+    const action = modal.action
+    const id = currentContract.id
+    if (action === 'accept') updateContract(id, { status: 'Active' }, 'Sample proposal accepted. No agreement was signed or funds transferred.')
+    if (action === 'decline') updateContract(id, { status: 'Declined' }, 'Sample proposal declined.')
+    if (action === 'cancel') updateContract(id, { status: 'Cancelled' }, 'Sample request cancelled.')
+    if (action === 'advance') updateContract(id, { advanceRecorded: true }, 'Sample advance recorded. No money was transferred.')
+    if (action === 'delivery') { const delivered = Math.min(currentContract.volume, currentContract.delivered + 10); updateContract(id, { delivered, status: delivered === currentContract.volume ? 'Completed' : 'Active' }, 'Sample delivery recorded.') }
+    setModal({ type: 'contract', contractId: id })
+  }
+
+  return <div className="app-shell">
+    <a href="#main-content" className="skip-link" onClick={(event) => { event.preventDefault(); document.getElementById('main-content').focus() }}>Skip to content</a>
+    {mobileNav && <button className="nav-scrim" aria-label="Close navigation" onClick={() => setMobileNav(false)} />}
+    <aside className={`sidebar ${mobileNav ? 'is-open' : ''}`} aria-label="Main navigation"><a href="#overview" className="brand" onClick={() => navigate('overview')}><span className="brand-symbol"><Icon name="leaf" size={27} /></span><span>terra<span className="brand-period">.</span><small>GROWING CONNECTIONS</small></span></a><div className="workspace-label">COMPANY WORKSPACE</div><div className="company-switch"><div className="company-avatar">N</div><div><strong>Northline Apparel</strong><span>Buyer account · Demo</span></div><Icon name="shield" size={17} /></div><div className="nav-section-label">PROCUREMENT</div><nav>{[{ id: 'overview', icon: 'grid', label: 'Overview' }, { id: 'cooperatives', icon: 'leaf', label: 'Cooperatives' }, { id: 'contracts', icon: 'file', label: 'Contracts' }].map((item) => <a key={item.id} href={`#${item.id}`} onClick={() => navigate(item.id)} className={`nav-link ${page === item.id ? 'active' : ''}`} aria-current={page === item.id ? 'page' : undefined}><Icon name={item.icon} size={20} />{item.label}{item.id === 'contracts' && incomingCount > 0 && <span className="nav-count">{incomingCount}</span>}</a>)}</nav><div className="sidebar-bottom"><div className="sidebar-note"><span className="sidebar-note-icon"><Icon name="leaf" size={24} /></span><h3>Built for shared growth.</h3><p>More resilient supply chains start with stronger farming communities.</p><span className="sidebar-note-line" /></div><button className="sidebar-help" onClick={() => setModal({ type: 'help' })}><Icon name="help" size={18} />About this demo<Icon name="arrow" size={15} /></button><div className="user-profile"><span className="user-avatar">NA</span><div><strong>Northline team</strong><small>Apparel company</small></div><span className="online-dot" /></div></div></aside>
+    <div className="workspace"><header className="topbar"><div className="breadcrumb"><button className="icon-button mobile-menu" aria-label="Toggle navigation" aria-expanded={mobileNav} onClick={() => setMobileNav((current) => !current)}><Icon name="menu" /></button><span>Workspace</span><Icon name="chevron" size={13} /><strong>{pageNames[page]}</strong></div><div className="topbar-right"><span className="demo-pill"><span />Interactive demo</span><span className="topbar-divider" /><button className="notification-button icon-button" aria-label={`Notifications: ${alerts.length + incomingCount} updates`} onClick={() => setModal({ type: 'notifications' })}><Icon name="bell" size={20} />{alerts.length + incomingCount > 0 && <span />}</button><span className="topbar-avatar">NA</span></div></header><main id="main-content" tabIndex={-1}><div className="demo-notice"><span><Icon name="leaf" size={15} />Sample data workspace</span><p>Explore the flow. No real contracts, payments, or insurance.</p><button onClick={() => setModal({ type: 'reset' })}>Reset demo<Icon name="reset" size={13} /></button></div>{storageUnavailable && <p role="status" className="storage-warning">Browser storage is unavailable. Changes will last for this session only.</p>}{page === 'overview' && <Dashboard contracts={contracts} navigate={navigate} onSupplier={openSupplier} onContract={openContract} />}{page === 'cooperatives' && <Marketplace onSupplier={openSupplier} />}{page === 'contracts' && <Contracts key={contractTab} contracts={contracts} navigate={navigate} onOpen={openContract} initialTab={contractTab} />}<footer className="app-footer"><span>terra. <span className="subtle-dot">/</span> Sourcing a better tomorrow.</span><span>Biomass procurement · Apparel workspace</span></footer></main></div>
+    {modal?.type === 'supplier' && currentSupplier && <Modal key={`supplier-${currentSupplier.id}`} title="Cooperative profile" subtitle="Get to know the people behind your supply." onClose={() => setModal(null)} wide><SupplierDetails supplier={currentSupplier} onRequest={(supplier) => setModal({ type: 'request', supplierId: supplier.id })} /></Modal>}
+    {modal?.type === 'request' && currentSupplier && <Modal key={`request-${currentSupplier.id}`} title="Build a supply partnership" subtitle="Propose a biomass supply and working capital agreement." onClose={() => setModal(null)} wide><ContractRequest supplier={currentSupplier} onSubmit={createContract} onCancel={() => setModal({ type: 'supplier', supplierId: currentSupplier.id })} /></Modal>}
+    {modal?.type === 'contract' && currentContract && <Modal key={`contract-${currentContract.id}`} title={`Contract ${currentContract.id}`} subtitle={currentContract.direction === 'incoming' ? 'Proposal received from the cooperative.' : 'Your supply agreement and delivery milestones.'} onClose={() => setModal(null)} wide><ContractDetails contract={currentContract} onUpdate={(changes, message) => updateContract(currentContract.id, changes, message)} onDecision={(action) => setModal({ type: 'confirm', contractId: currentContract.id, action })} /></Modal>}
+    {modal?.type === 'confirm' && currentContract && <Modal key={`confirm-${modal.action}`} title={confirmLabels[modal.action][0]} onClose={() => openContract(currentContract)}><p className="confirm-description">{confirmLabels[modal.action][1]}</p><footer className="modal-actions"><Button variant="secondary" onClick={() => openContract(currentContract)}>Go back</Button><Button onClick={confirmAction}>{confirmLabels[modal.action][2]}</Button></footer></Modal>}
+    {modal?.type === 'reset' && <Modal key="reset" title="Start fresh?" onClose={() => setModal(null)}><p className="confirm-description">Reset this browser’s demo contracts to the original examples. Requests and changes you made in this demo will be removed.</p><footer className="modal-actions"><Button variant="secondary" onClick={() => setModal(null)}>Keep my changes</Button><Button onClick={() => { resetContracts(); setModal(null); setToast('Sample workspace reset.'); navigate('overview') }}>Reset sample data</Button></footer></Modal>}
+    {modal?.type === 'help' && <Modal key="help" title="A workspace for shared growth." subtitle="Terra is a working name for this frontend prototype." onClose={() => setModal(null)}><div className="help-content"><p>This apparel-company workspace demonstrates sustainable biomass discovery, supply proposals, working capital commitments, and delivery monitoring.</p><h4>Try the full flow</h4><ol><li>Browse and filter sample cooperatives.</li><li>Open a profile and request a contract.</li><li>Review terms, then send a demo request.</li><li>Manage incoming proposals and sample deliveries in Contracts.</li></ol><p>All companies, ratings, capacities, and agreement records are fictional. Changes are stored in this browser when available. Authentication, Stellar payments, signatures, and insurance provider connections are not implemented.</p></div><footer className="modal-actions"><Button onClick={() => { setModal(null); navigate('cooperatives') }}>Explore cooperatives<Icon name="arrow" size={17} /></Button></footer></Modal>}
+    {modal?.type === 'notifications' && <Modal key="notifications" title="Workspace updates" subtitle="Sample proposals and delivery alerts." onClose={() => setModal(null)}><div className="notification-list">{contracts.filter((contract) => contract.status === 'Incoming request' || (contract.status === 'Active' && contract.risk && !contract.riskAcknowledged)).map((contract) => <button key={contract.id} onClick={() => openContract(contract)}><span className="square-icon"><Icon name={contract.status === 'Incoming request' ? 'file' : 'alert'} /></span><span><strong>{contract.status === 'Incoming request' ? 'New supply proposal' : 'Delivery update'}</strong><small>{supplierFor(contract.supplierId).name} · {contract.id}</small></span><Icon name="chevron" size={17} /></button>)}{!alerts.length && !incomingCount && <EmptyState title="You’re all caught up" description="New sample proposals and delivery alerts will appear here." />}</div></Modal>}
+    <div className="toast-region" role="status" aria-live="polite" aria-atomic="true">{toast && <div className="toast"><span><Icon name="check" size={18} /></span>{toast}<button className="icon-button" aria-label="Dismiss notification" onClick={() => setToast('')}><Icon name="close" size={16} /></button></div>}</div>
+  </div>
+}
